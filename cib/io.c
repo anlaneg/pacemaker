@@ -80,6 +80,7 @@ retrieveCib(const char *filename, const char *sigfile)
 
     crm_info("Reading cluster configuration file %s (digest: %s)",
              filename, sigfile);
+    //获取配置文件的root节点
     switch (cib_file_read_and_verify(filename, sigfile, &root)) {
         case -pcmk_err_cib_corrupt:
             crm_warn("Continuing but %s will NOT be used.", filename);
@@ -205,20 +206,23 @@ readCibXmlFile(const char *dir, const char *file, gboolean discard_status)
     xmlNode *root = NULL;
     xmlNode *status = NULL;
 
+    //检查user是否对file有读写权限
     if (!crm_is_writable(dir, file, CRM_DAEMON_USER, NULL, FALSE)) {
         cib_status = -EACCES;
         return NULL;
     }
 
+    //合并配置文件路径
     filename = crm_concat(dir, file, '/');
-    sigfile = crm_concat(filename, "sig", '.');
+    sigfile = crm_concat(filename, "sig", '.');//采用.sig后缀得出sig文件
 
     cib_status = pcmk_ok;
-    root = retrieveCib(filename, sigfile);
+    root = retrieveCib(filename, sigfile);//取配置文件的root节点
     free(filename);
     free(sigfile);
 
     if (root == NULL) {
+    	//配置文件不存在，尝试cib_root
         crm_warn("Primary configuration corrupt or unusable, trying backups in %s", cib_root);
         lpc = scandir(cib_root, &namelist, cib_archive_filter, cib_archive_sort);
         if (lpc < 0) {
@@ -226,6 +230,7 @@ readCibXmlFile(const char *dir, const char *file, gboolean discard_status)
         }
     }
 
+    //如果root为NULL，则遍历扫描出来的各个文件
     while (root == NULL && lpc > 1) {
         crm_debug("Testing %d candidates", lpc);
 
@@ -234,6 +239,7 @@ readCibXmlFile(const char *dir, const char *file, gboolean discard_status)
         filename = crm_strdup_printf("%s/%s", cib_root, namelist[lpc]->d_name);
         sigfile = crm_concat(filename, "sig", '.');
 
+        //读$filename对应的配置根节点
         crm_info("Reading cluster configuration file %s (digest: %s)",
                  filename, sigfile);
         if (cib_file_read_and_verify(filename, sigfile, &root) < 0) {
@@ -248,6 +254,7 @@ readCibXmlFile(const char *dir, const char *file, gboolean discard_status)
     }
     free(namelist);
 
+    //仍然没有找到根节点，创建空的配置
     if (root == NULL) {
         root = createEmptyCib(0);
         crm_warn("Continuing with an empty configuration.");

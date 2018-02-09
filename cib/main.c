@@ -148,9 +148,10 @@ main(int argc, char **argv)
     cib_writer = mainloop_add_trigger(G_PRIORITY_LOW, write_cib_contents, NULL);
 
     while (1) {
+    	//解析选项
         flag = crm_get_option(argc, argv, &index);
         if (flag == -1)
-            break;
+            break;//解析完成
 
         switch (flag) {
             case 'V':
@@ -217,6 +218,7 @@ main(int argc, char **argv)
     crm_log_init(NULL, LOG_INFO, TRUE, FALSE, argc, argv, FALSE);
 
     if (cib_root == NULL) {
+    	//通过确定cib.xml文件在哪个目录,来设置cib_root
         if ((g_file_test(CRM_CONFIG_DIR "/cib.xml", G_FILE_TEST_EXISTS) == FALSE)
             && (g_file_test(CRM_LEGACY_CONFIG_DIR "/cib.xml", G_FILE_TEST_EXISTS) == TRUE)) {
 
@@ -230,6 +232,7 @@ main(int argc, char **argv)
         crm_notice("Using custom config location: %s", cib_root);
     }
 
+    //检查是否对cib_root有读写权限
     if (crm_is_writable(cib_root, NULL, CRM_DAEMON_USER, CRM_DAEMON_GROUP, FALSE) == FALSE) {
         crm_err("Bad permissions on %s. Terminating", cib_root);
         fprintf(stderr, "ERROR: Bad permissions on %s. See logs for details\n", cib_root);

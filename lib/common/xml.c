@@ -5094,6 +5094,7 @@ crm_xml_init(void)
 {
     static bool init = TRUE;
 
+    //只能初始化一次
     if(init) {
         init = FALSE;
         /* The default allocator XML_BUFFER_ALLOC_EXACT does far too many

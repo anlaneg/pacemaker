@@ -124,6 +124,7 @@ xml_latest_schema(void)
     return get_schema_name(xml_latest_schema_index());
 }
 
+//取模式文件目录
 static const char *
 get_schema_root(void)
 {
@@ -144,11 +145,14 @@ get_schema_path(const char *name, const char *file)
     const char *base = get_schema_root();
 
     if (file) {
+    	//如果指定file，则采用file的自有后缀
         return crm_strdup_printf("%s/%s", base, file);
     }
+    //否则直接改为rng后缀
     return crm_strdup_printf("%s/%s.rng", base, name);
 }
 
+//自文件命中中读取版本号“pacemaker-%hhu.%hhu.rng"
 static inline bool
 version_from_filename(const char *filename, schema_version_t *version)
 {
@@ -163,12 +167,14 @@ schema_filter(const struct dirent *a)
     int rc = 0;
     schema_version_t version = SCHEMA_ZERO;
 
+    //如称不以pacemaker-开头的忽略
     if (strstr(a->d_name, "pacemaker-") != a->d_name) {
         /* crm_trace("%s - wrong prefix", a->d_name); */
 
     } else if (!crm_ends_with_ext(a->d_name, ".rng")) {
         /* crm_trace("%s - wrong suffix", a->d_name); */
 
+    //读取不到版本号的忽略
     } else if (!version_from_filename(a->d_name, &version)) {
         /* crm_trace("%s - wrong format", a->d_name); */
 
@@ -190,12 +196,14 @@ schema_sort(const struct dirent **a, const struct dirent **b)
     schema_version_t a_version = SCHEMA_ZERO;
     schema_version_t b_version = SCHEMA_ZERO;
 
+    //如果提取版本号失败，则返回0
     if (!version_from_filename(a[0]->d_name, &a_version)
         || !version_from_filename(b[0]->d_name, &b_version)) {
         // Shouldn't be possible, but makes static analysis happy
         return 0;
     }
 
+    //比对版本号
     for (int i = 0; i < 2; ++i) {
         if (a_version.v[i] < b_version.v[i]) {
             return -1;
@@ -292,11 +300,13 @@ crm_schema_init(void)
         crm_notice("scandir(%s) failed: %s (%d)", base, strerror(errno), errno);
 
     } else {
+    	//遍历收集的所有合法目录
         for (lpc = 0; lpc < max; lpc++) {
             int next = 0;
             schema_version_t version = SCHEMA_ZERO;
             char *transform = NULL;
 
+            //读lpc号的版本，读失败的忽略掉
             if (!version_from_filename(namelist[lpc]->d_name, &version)) {
                 // Shouldn't be possible, but makes static analysis happy
                 crm_err("Skipping schema '%s': could not parse version",
@@ -305,6 +315,7 @@ crm_schema_init(void)
                 continue;
             }
             if ((lpc + 1) < max) {
+            	//存在下一个文件，即下一个版本
                 schema_version_t next_version = SCHEMA_ZERO;
 
                 if (version_from_filename(namelist[lpc+1]->d_name, &next_version)
@@ -313,9 +324,11 @@ crm_schema_init(void)
                     struct stat s;
                     char *xslt = NULL;
 
+                    //生成升级用的xsl名称
                     transform = schema_strdup_printf("upgrade-", version, ".xsl");
-                    xslt = get_schema_path(NULL, transform);
+                    xslt = get_schema_path(NULL, transform);//构造transform的xsl文件路径
                     if (stat(xslt, &s) != 0) {
+                    	//检查xslt文件后，发现文件不存在
                         crm_err("Transform %s not found", xslt);
                         free(xslt);
                         add_schema(schema_validator_rng, &version, NULL, NULL,

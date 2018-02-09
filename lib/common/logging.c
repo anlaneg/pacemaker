@@ -712,6 +712,7 @@ crm_log_preinit(const char *entity, int argc, char **argv)
     int lpc = 0;
     int32_t qb_facility = 0;
 
+    //只初始化一次
     static bool have_logging = FALSE;
 
     if(have_logging == FALSE) {
@@ -1252,6 +1253,7 @@ crm_log_output_fn(const char *file, const char *function, int line, int level, c
     } while (next != NULL && next[0] != 0);
 }
 
+//按格式生成字符串
 char *
 crm_strdup_printf (char const *format, ...)
 {

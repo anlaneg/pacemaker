@@ -28,6 +28,7 @@
 #include <bzlib.h>
 #include <sys/types.h>
 
+//字符串连接
 char *
 crm_concat(const char *prefix, const char *suffix, char join)
 {
@@ -209,6 +210,7 @@ crm_strip_trailing_newline(char *str)
     return str;
 }
 
+//两者内容比对
 gboolean
 crm_str_eq(const char *a, const char *b, gboolean use_case)
 {
@@ -217,14 +219,14 @@ crm_str_eq(const char *a, const char *b, gboolean use_case)
 
         /* TODO - Figure out which calls, if any, really need to be case independent */
     } else if (a == b) {
-        return TRUE;
+        return TRUE;//指向同一个，返回True
 
     } else if (a == NULL || b == NULL) {
         /* shouldn't be comparing NULLs */
-        return FALSE;
+        return FALSE;//有一方为NULL，返回False
 
     } else if (strcasecmp(a, b) == 0) {
-        return TRUE;
+        return TRUE;//两个字符串对比相等，返回True
     }
     return FALSE;
 }
