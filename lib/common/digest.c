@@ -74,6 +74,7 @@ calculate_xml_digest_v1(xmlNode * input, gboolean sort, gboolean ignored)
         input = copy;
     }
 
+    //对内容进行md5摘要计算
     buffer = dump_xml_for_digest(input);
     CRM_CHECK(buffer != NULL && strlen(buffer) > 0, free_xml(copy);
               free(buffer);
@@ -225,12 +226,14 @@ crm_digest_verify(xmlNode *input, const char *expected)
     gboolean passed;
 
     if (input != NULL) {
+    	//生成xml的摘要
         calculated = calculate_on_disk_digest(input);
         if (calculated == NULL) {
             crm_perror(LOG_ERR, "Could not calculate digest for comparison");
             return FALSE;
         }
     }
+    //检查expected与calculated是否相等
     passed = safe_str_eq(expected, calculated);
     if (passed) {
         crm_trace("Digest comparison passed: %s", calculated);

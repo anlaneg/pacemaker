@@ -82,6 +82,7 @@ cib_file_register_notification(cib_t * cib, const char *callback, int enabled)
  *
  * \return TRUE if digests match or signature file does not exist, else FALSE
  */
+//比对xml及其签名信息是否匹配
 static gboolean
 cib_file_verify_digest(xmlNode *root, const char *sigfile)
 {
@@ -89,6 +90,7 @@ cib_file_verify_digest(xmlNode *root, const char *sigfile)
     char *expected = crm_read_contents(sigfile);
 
     if (expected == NULL) {
+    	//文件内容为空时进入，报错
         switch (errno) {
             case 0:
                 crm_err("On-disk digest at %s is empty", sigfile);
@@ -101,6 +103,7 @@ cib_file_verify_digest(xmlNode *root, const char *sigfile)
                 return FALSE;
         }
     }
+    //检查摘要信息
     passed = crm_digest_verify(root, expected);
     free(expected);
     return passed;
@@ -121,6 +124,7 @@ cib_file_verify_digest(xmlNode *root, const char *sigfile)
  * \note If root is non-NULL, it is the caller's responsibility to free *root on
  *       successful return.
  */
+//读xml并校验，返回xml根节点
 int
 cib_file_read_and_verify(const char *filename, const char *sigfile, xmlNode **root)
 {
@@ -137,16 +141,20 @@ cib_file_read_and_verify(const char *filename, const char *sigfile, xmlNode **ro
     /* Verify that file exists and its size is nonzero */
     s_res = stat(filename, &buf);
     if (s_res < 0) {
+    	//文件获取状态失败
         crm_perror(LOG_WARNING, "Could not verify cluster configuration file %s", filename);
         return -errno;
     } else if (buf.st_size == 0) {
+    	//空文件，报错
         crm_warn("Cluster configuration file %s is corrupt (size is zero)", filename);
         return -pcmk_err_cib_corrupt;
     }
 
     /* Parse XML */
+    //构造文件成xml
     local_root = filename2xml(filename);
     if (local_root == NULL) {
+    	//解析配置文件失败
         crm_warn("Cluster configuration file %s is corrupt (unparseable as XML)", filename);
         return -pcmk_err_cib_corrupt;
     }
@@ -157,6 +165,7 @@ cib_file_read_and_verify(const char *filename, const char *sigfile, xmlNode **ro
     }
 
     /* Verify that digests match */
+    //摘要校验
     if (cib_file_verify_digest(local_root, sigfile) == FALSE) {
         free(local_sigfile);
         free_xml(local_root);

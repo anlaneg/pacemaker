@@ -275,6 +275,7 @@ crm_chown_last_sequence(const char *directory, const char *series, uid_t uid, gi
  *
  * \return TRUE if permissions match, FALSE if they don't or on error
  */
+//确认指定文件权限是否匹配
 gboolean
 crm_is_writable(const char *dir, const char *file,
                 const char *user, const char *group, gboolean need_both)
@@ -291,6 +292,7 @@ crm_is_writable(const char *dir, const char *file,
     if (file != NULL) {
         full_file = crm_concat(dir, file, '/');
         target = full_file;
+        //构造文件路径，检查文件是否存在
         s_res = stat(full_file, &buf);
         if (s_res == 0 && S_ISREG(buf.st_mode) == FALSE) {
             crm_err("%s must be a regular file", target);
@@ -300,6 +302,8 @@ crm_is_writable(const char *dir, const char *file,
     }
 
     if (s_res != 0) {
+    	//如果文件不存在，检查目录是否存在
+    	//确认dir是一个目录
         target = dir;
         s_res = stat(dir, &buf);
         if (s_res != 0) {
@@ -317,6 +321,7 @@ crm_is_writable(const char *dir, const char *file,
         struct passwd *sys_user = NULL;
 
         sys_user = getpwnam(user);
+        //指定用户名，需要用户对文件（如果存在）或者目录（如果文件不存在）有读取权限，且为owner
         readwritable = (sys_user != NULL
                         && buf.st_uid == sys_user->pw_uid && (buf.st_mode & (S_IRUSR | S_IWUSR)));
         if (readwritable == FALSE) {
@@ -330,6 +335,7 @@ crm_is_writable(const char *dir, const char *file,
     if (group) {
         struct group *sys_grp = getgrnam(group);
 
+        //如果指定组，需要组对文件有读写权限，且文件属于本组
         readwritable = (sys_grp != NULL
                         && buf.st_gid == sys_grp->gr_gid && (buf.st_mode & (S_IRGRP | S_IWGRP)));
         if (readwritable == FALSE) {
@@ -400,6 +406,7 @@ crm_read_contents(const char *filename)
 
     errno = 0; /* enable caller to distinguish error from empty file */
 
+    //打开文件，获知文件大小，申请必要的内存，读取文件内容，关闭文件
     fp = fopen(filename, "r");
     if (fp == NULL) {
         return NULL;

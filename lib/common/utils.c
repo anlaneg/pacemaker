@@ -1008,6 +1008,7 @@ crm_create_long_opts(struct crm_option *long_options)
     return long_opts;
 }
 
+//设置全局的“短选项",“长选项”，“app用法“，”app描述"
 void
 crm_set_options(const char *short_options, const char *app_usage, struct crm_option *long_options,
                 const char *app_desc)
@@ -1016,6 +1017,7 @@ crm_set_options(const char *short_options, const char *app_usage, struct crm_opt
         crm_short_options = strdup(short_options);
 
     } else if (long_options) {
+    	//没有提供short_options,构造short_options
         int lpc = 0;
         int opt_string_len = 0;
         char *local_short_options = NULL;
@@ -1034,16 +1036,22 @@ crm_set_options(const char *short_options, const char *app_usage, struct crm_opt
                 local_short_options[opt_string_len] = 0;
             }
         }
+        //设置短选项
         crm_short_options = local_short_options;
         crm_trace("Generated short option string: '%s'", local_short_options);
     }
 
+    //设置长选项
     if (long_options) {
         crm_long_options = long_options;
     }
+
+    //应用程序描述
     if (app_desc) {
         crm_app_description = app_desc;
     }
+
+    //应用程序用法
     if (app_usage) {
         crm_app_usage = app_usage;
     }
@@ -1100,6 +1108,7 @@ crm_get_option_long(int argc, char **argv, int *index, const char **longname)
     return -1;
 }
 
+//显示帮助信息
 int
 crm_help(char cmd, int exit_code)
 {
