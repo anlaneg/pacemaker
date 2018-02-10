@@ -171,3 +171,5 @@ logs
 *.rej
 *.swp
 pengine/test10/shadow.*
+.cproject
+.project
